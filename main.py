@@ -3,7 +3,6 @@ import telebot
 from flask import Flask
 from threading import Thread
 
-# Flask Server Setup
 app = Flask('')
 
 @app.route('/')
@@ -17,28 +16,27 @@ def keep_alive():
     t = Thread(target=run_flask)
     t.start()
 
-# Telegram Bot Setup
-TOKEN = '8996399169:AAEAXrJc50xcopyqF5fE-lbmPSB0VrnTJtU'
+TOKEN = '8996399169:AAEAXrJc50xcopyqF5fE-lbmPSB0VrnTJtU'  # BotFather er Token
 bot = telebot.TeleBot(TOKEN)
 
-# যে ইমোজিগুলো থেকে বট বেছে নেবে তার একটি তালিকা
 EMOJI_LIST = ['👍', '❤️', '🔥', '🎉', '🥰', '👏', '⚡', '💯']
 
+# Proti ta new channel post e reaction dibe
 @bot.channel_post_handler(func=lambda message: True)
 def auto_react(message):
     try:
-        # তালিকা থেকে যেকোনো একটি ইমোজি এলোমেলোভাবে সিলেক্ট করা
         selected_emoji = random.choice(EMOJI_LIST)
-        
         bot.set_message_reaction(
             chat_id=message.chat.id,
             message_id=message.message_id,
             reaction=[telebot.types.ReactionTypeEmoji(selected_emoji)]
         )
-        print(f"Post {message.message_id}-এ '{selected_emoji}' রিঅ্যাকশন দেওয়া হয়েছে!")
+        print(f"Reaction sent to post {message.message_id}")
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error giving reaction: {e}")
 
 if __name__ == "__main__":
     keep_alive()
+    # Continuous polling ensure kore jeno kono post miss na hoy
+    bot.infinity_polling(timeout=20, long_polling_timeout=10)
     bot.infinity_polling()
