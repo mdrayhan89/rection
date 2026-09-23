@@ -18,7 +18,7 @@ def keep_alive():
     t.start()
 
 # Telegram Bot Setup
-TOKEN = '8772565875:AAHyDH-063rlJoEoO5vvrEVnUtRQoTsHIdA'
+TOKEN = '8996399169:AAEAXrJc50xcopyqF5fE-lbmPSB0VrnTJtU'
 bot = telebot.TeleBot(TOKEN)
 
 # যে ইমোজিগুলো থেকে বট বেছে নেবে তার একটি তালিকা
