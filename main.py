@@ -1,8 +1,12 @@
 import random
-import telebot
+import asyncio
 from flask import Flask
 from threading import Thread
+from telethon import TelegramClient, events
+from telethon.tl.functions.messages import SendReactionRequest
+from telethon.tl.types import ReactionEmoji
 
+# Flask Server Setup (Render-কে ২৪/৭ জাগিয়ে রাখার জন্য)
 app = Flask('')
 
 @app.route('/')
@@ -16,27 +20,36 @@ def keep_alive():
     t = Thread(target=run_flask)
     t.start()
 
-TOKEN = '8996399169:AAEAXrJc50xcopyqF5fE-lbmPSB0VrnTJtU'  # BotFather er Token
-bot = telebot.TeleBot(TOKEN)
+# API Credentials (my.telegram.org থেকে নেওয়া)
+API_ID = 38101204  # আপনার Integer API ID বসান
+API_HASH = 'db2533c8aa466bae30e453e7f0f15910'  # আপনার API Hash বসান
+BOT_TOKEN = '8996399169:AAEAXrJc50xcopyqF5fE-lbmPSB0VrnTJtU'  # BotFather থেকে পাওয়া Token
 
+# পছন্দনীয় ইমোজির তালিকা
 EMOJI_LIST = ['👍', '❤️', '🔥', '🎉', '🥰', '👏', '⚡', '💯']
 
-# Proti ta new channel post e reaction dibe
-@bot.channel_post_handler(func=lambda message: True)
-def auto_react(message):
-    try:
-        selected_emoji = random.choice(EMOJI_LIST)
-        bot.set_message_reaction(
-            chat_id=message.chat.id,
-            message_id=message.message_id,
-            reaction=[telebot.types.ReactionTypeEmoji(selected_emoji)]
-        )
-        print(f"Reaction sent to post {message.message_id}")
-    except Exception as e:
-        print(f"Error giving reaction: {e}")
+client = TelegramClient('bot_session', API_ID, API_HASH)
+
+@client.on(events.NewMessage())
+async def auto_react(event):
+    # শুধু চ্যানেল বা গ্রুপে আসা মেসেজ প্রসেস করবে
+    if event.is_channel or event.is_group:
+        try:
+            # Telegram API Block এড়াতে ১ সেকেন্ডের বিরতি (Delay)
+            await asyncio.sleep(1)
+            
+            selected_emoji = random.choice(EMOJI_LIST)
+            
+            await client(SendReactionRequest(
+                peer=event.chat_id,
+                msg_id=event.id,
+                reaction=[ReactionEmoji(emoticon=selected_emoji)]
+            ))
+            print(f"Post {event.id}-এ '{selected_emoji}' রিঅ্যাকশন দেওয়া হয়েছে!")
+        except Exception as e:
+            print(f"Error: {e}")
 
 if __name__ == "__main__":
     keep_alive()
-    # Continuous polling ensure kore jeno kono post miss na hoy
-    bot.infinity_polling(timeout=20, long_polling_timeout=10)
-    bot.infinity_polling()
+    client.start(bot_token=BOT_TOKEN)
+    client.run_until_disconnected()
